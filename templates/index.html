@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MCPSB Staff Attendance Register</title>
+<link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+
+<div class="header">
+  <img src="/static/county_logo.png" class="logo">
+  <h1>COUNTY GOVERNMENT OF MAKUENI</h1>
+  <h4>MCPSB</h4>
+  <p>Employee / Staff Registration Form</p>
+</div>
+
+<form id="attendanceForm" action="/submit-form/" method="POST">
+
+  <h2>Makueni County Public Service Board Attendance Register</h2>
+
+  <h3>SECTION A: PERSONAL PARTICULARS</h3>
+
+  <label>Title</label>
+  <select name="title" id="titleSelect" onchange="toggleCustomTitle()" required>
+    <option value="">Select</option>
+    <option>Mr.</option>
+    <option>Mrs.</option>
+    <option>Ms.</option>
+    <option>Dr.</option>
+    <option>Prof.</option>
+    <option>Eng.</option>
+    <option>CPA</option>
+    <option>FCPA</option>
+    <option value="Other">Other (Specify)</option>
+  </select>
+  <input type="text" id="customTitle" name="custom_title" placeholder="Enter custom title" style="display:none;">
+
+  <label>First Name</label>
+  <input type="text" name="first_name" required>
+
+  <label>Surname</label>
+  <input type="text" name="surname" required>
+
+  <label>Other Name(s)</label>
+  <input type="text" name="other_names">
+
+  <label>ID / Payroll Number</label>
+  <input type="text" name="id_number" required>
+
+  <label>Designation</label>
+  <input type="text" name="designation" required>
+
+  <label>Organization</label>
+  <input type="text" name="organization" required>
+
+  <h3>SECTION B: DEMOGRAPHIC INFORMATION</h3>
+
+  <label>Gender</label>
+  <div class="radio-group">
+    <input type="radio" name="gender" value="Male" required> Male
+    <input type="radio" name="gender" value="Female"> Female
+    <input type="radio" name="gender" value="Prefer not to say"> Prefer not to say
+  </div>
+
+  <label>Person With Disability (PWD)</label>
+  <div class="radio-group">
+    <input type="radio" name="pwd" value="Yes" onclick="togglePWD(true)"> Yes
+    <input type="radio" name="pwd" value="No" onclick="togglePWD(false)"> No
+  </div>
+
+  <div id="pwdDetails" class="checkbox-group" style="display:none;">
+    <input type="checkbox" name="disability_category" value="Physical"> Physical
+    <input type="checkbox" name="disability_category" value="Visual"> Visual
+    <input type="checkbox" name="disability_category" value="Hearing"> Hearing
+    <input type="checkbox" name="disability_category" value="Intellectual"> Intellectual
+  </div>
+
+  <h3>SECTION C: SIGNATURE & DATE/TIME</h3>
+
+  <label>Electronic Signature</label>
+  <canvas id="signatureCanvas"></canvas>
+  <button type="button" class="clear-signature" onclick="clearSignature()">Clear Signature</button>
+  <input type="hidden" name="signature" id="signatureInput">
+
+  <label>Date</label>
+  <input type="text" name="date" id="dateInput" readonly>
+
+  <label>Time</label>
+  <input type="text" name="time" id="timeInput" readonly>
+
+  <div class="declaration">
+    <label>
+      <input type="checkbox" name="declaration" required>
+      I hereby declare that the information provided is true and accurate.
+    </label>
+  </div>
+
+  <button type="submit" class="submit-button">Submit</button>
+
+</form>
+
+<script>
+// === Custom Title Toggle ===
+function toggleCustomTitle() {
+  const select = document.getElementById("titleSelect");
+  const custom = document.getElementById("customTitle");
+  if (select.value === "Other") {
+    custom.style.display = "block";
+    custom.required = true;
+  } else {
+    custom.style.display = "none";
+    custom.required = false;
+  }
+}
+
+// === PWD Toggle ===
+function togglePWD(show) {
+  document.getElementById("pwdDetails").style.display = show ? "flex" : "none";
+}
+
+// === Auto Date and Time ===
+const now = new Date();
+document.getElementById("dateInput").value = now.toLocaleDateString();
+document.getElementById("timeInput").value = now.toLocaleTimeString();
+
+// === Signature Capture ===
+const canvas = document.getElementById("signatureCanvas");
+const ctx = canvas.getContext("2d");
+let drawing = false;
+
+canvas.addEventListener("mousedown", () => drawing = true);
+canvas.addEventListener("mouseup", () => drawing = false);
+canvas.addEventListener("mouseout", () => drawing = false);
+canvas.addEventListener("mousemove", draw);
+
+canvas.addEventListener("touchstart", (e) => { drawing = true; draw(e.touches[0]); e.preventDefault(); });
+canvas.addEventListener("touchmove", (e) => { draw(e.touches[0]); e.preventDefault(); });
+canvas.addEventListener("touchend", () => drawing = false);
+
+function draw(e) {
+  if (!drawing) return;
+  const rect = canvas.getBoundingClientRect();
+  ctx.lineWidth = 2;
+  ctx.lineCap = "round";
+  ctx.strokeStyle = "#000000";
+  ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+}
+
+// === Clear Signature Function ===
+function clearSignature() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+// === Save Signature on Submit ===
+document.getElementById("attendanceForm").addEventListener("submit", function() {
+  document.getElementById("signatureInput").value = canvas.toDataURL();
+});
+</script>
+
+</body>
+</html>
