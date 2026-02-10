@@ -6,12 +6,12 @@ from fastapi.templating import Jinja2Templates
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 import os
-import base64
-import uuid
 
 app = FastAPI()
 
-# Enable CORS
+# -------------------------
+# CORS
+# -------------------------
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -20,20 +20,36 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Ensure signature folder exists
-os.makedirs("static/signatures", exist_ok=True)
-
-# Serve static files
+# -------------------------
+# Static + Templates
+# -------------------------
 app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Templates
 templates = Jinja2Templates(directory="templates")
 
-# Google Sheets setup using Render secret file
-SERVICE_ACCOUNT_PATH = "/run/secrets/service_account.json"
+# -------------------------
+# FIND SERVICE ACCOUNT FILE (SMART SEARCH)
+# -------------------------
 
-if not os.path.exists(SERVICE_ACCOUNT_PATH):
-    raise FileNotFoundError(f"Service account JSON not found at {SERVICE_ACCOUNT_PATH}")
+POSSIBLE_PATHS = [
+    "/run/secrets/service_account.json",  # Render secret file
+    "service_account.json"                # Local development fallback
+]
+
+SERVICE_ACCOUNT_PATH = None
+
+for path in POSSIBLE_PATHS:
+    if os.path.exists(path):
+        SERVICE_ACCOUNT_PATH = path
+        print(f"✅ Using service account at: {path}")
+        break
+
+if SERVICE_ACCOUNT_PATH is None:
+    print("❌ Service account file NOT FOUND")
+    raise Exception("Service account JSON missing. Check Render Secret Files.")
+
+# -------------------------
+# Google Sheets
+# -------------------------
 
 scope = [
     "https://spreadsheets.google.com/feeds",
@@ -41,24 +57,20 @@ scope = [
 ]
 
 creds = ServiceAccountCredentials.from_json_keyfile_name(
-    SERVICE_ACCOUNT_PATH,
-    scope
+    SERVICE_ACCOUNT_PATH, scope
 )
 
 client = gspread.authorize(creds)
 sheet = client.open("MCPSB Staff Attendance Register").sheet1
 
-# ⭐ CHANGE THIS TO YOUR REAL RENDER URL
-BASE_URL = "https://mcpsb-registration-form.onrender.com/"
+# -------------------------
+# ROUTES
+# -------------------------
 
-
-# Serve form
 @app.get("/", response_class=HTMLResponse)
 async def get_form(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
-
-# Handle submission
 @app.post("/submit-form/")
 async def submit_form(
     title: str = Form(...),
@@ -80,49 +92,24 @@ async def submit_form(
 
     final_title = custom_title if title == "Other" else title
 
+    row = [
+        final_title,
+        first_name,
+        surname,
+        other_names,
+        id_number,
+        designation,
+        organization,
+        gender,
+        pwd,
+        disability_category,
+        date,
+        time,
+        signature
+    ]
+
     try:
-        # Convert base64 signature to PNG image
-        header, encoded = signature.split(",", 1)
-        image_data = base64.b64decode(encoded)
-
-        filename = f"{uuid.uuid4()}.png"
-        filepath = f"static/signatures/{filename}"
-
-        with open(filepath, "wb") as f:
-            f.write(image_data)
-
-        # Create public URL
-        image_url = f"{BASE_URL}/static/signatures/{filename}"
-
-        # Show image directly in Google Sheets
-        sheet_image = f'=IMAGE("{image_url}")'
-
-        # Prepare row
-        row = [
-            final_title,
-            first_name,
-            surname,
-            other_names,
-            id_number,
-            designation,
-            organization,
-            gender,
-            pwd,
-            disability_category,
-            date,
-            time,
-            sheet_image
-        ]
-
         sheet.append_row(row)
-
-        return {
-            "status": "success",
-            "message": "Attendance submitted successfully!"
-        }
-
+        return {"status": "success", "message": "Attendance submitted successfully!"}
     except Exception as e:
-        return {
-            "status": "error",
-            "message": str(e)
-        }
+        return {"status": "error", "message": str(e)}
