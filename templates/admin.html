@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - Attendance</title>
+<link rel="stylesheet" href="/static/styles.css">
+<style>
+  body { font-family: 'Times New Roman', serif; margin: 20px; }
+  h1 { text-align: center; }
+  input.search-box { margin-bottom: 15px; padding: 8px; width: 300px; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: left; font-size: 12px; }
+  th { background: #f2f2f2; }
+  .pagination { text-align: center; margin-top: 10px; }
+  .pagination button { padding: 5px 10px; margin: 2px; cursor: pointer; }
+  button#exportPdf { background: #0052cc; color: #fff; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; }
+  button#exportPdf:hover { background: #003d99; }
+  img.signature { width: 80px; height: auto; }
+</style>
+</head>
+<body>
+
+<h1>MCPSB Attendance Dashboard</h1>
+
+<input type="text" id="searchInput" class="search-box" placeholder="Search by name, ID or org...">
+<button id="exportPdf">Export PDF</button>
+
+<table id="attendanceTable">
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>First Name</th>
+      <th>Surname</th>
+      <th>Other Names</th>
+      <th>ID</th>
+      <th>Designation</th>
+      <th>Organization</th>
+      <th>Gender</th>
+      <th>PWD</th>
+      <th>Disability Category</th>
+      <th>Date</th>
+      <th>Time</th>
+      <th>Signature</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for row in attendances %}
+    <tr>
+      <td>{{ row['title'] }}</td>
+      <td>{{ row['first_name'] }}</td>
+      <td>{{ row['surname'] }}</td>
+      <td>{{ row['other_names'] }}</td>
+      <td>{{ row['id_number'] }}</td>
+      <td>{{ row['designation'] }}</td>
+      <td>{{ row['organization'] }}</td>
+      <td>{{ row['gender'] }}</td>
+      <td>{{ row['pwd'] }}</td>
+      <td>{{ row['disability_category'] }}</td>
+      <td>{{ row['date'] }}</td>
+      <td>{{ row['time'] }}</td>
+      <td>
+        {% if row['signature'] %}
+          <img src="{{ row['signature'] }}" alt="Signature" class="signature">
+        {% endif %}
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<div class="pagination" id="pagination"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+  const table = document.getElementById("attendanceTable");
+  const rows = Array.from(table.querySelectorAll("tbody tr"));
+  const searchInput = document.getElementById("searchInput");
+  const paginationContainer = document.getElementById("pagination");
+  const rowsPerPage = 10;
+  let currentPage = 1;
+
+  function displayRows(page) {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    rows.forEach((row, i) => row.style.display = (i >= start && i < end) ? "" : "none");
+
+    renderPagination();
+  }
+
+  function renderPagination() {
+    const totalPages = Math.ceil(rows.length / rowsPerPage);
+    paginationContainer.innerHTML = "";
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement("button");
+      btn.textContent = i;
+      if (i === currentPage) btn.style.fontWeight = "bold";
+      btn.onclick = () => { currentPage = i; displayRows(currentPage); };
+      paginationContainer.appendChild(btn);
+    }
+  }
+
+  function searchTable() {
+    const filter = searchInput.value.toLowerCase();
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      row.style.display = text.includes(filter) ? "" : "none";
+    });
+    currentPage = 1;
+    renderPagination();
+  }
+
+  searchInput.addEventListener("keyup", searchTable);
+
+  displayRows(currentPage);
+
+  // PDF Export
+  document.getElementById("exportPdf").addEventListener("click", () => {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF("l", "pt", "a4");
+    doc.html(document.querySelector("#attendanceTable"), {
+      callback: function (doc) {
+        doc.save("attendance.pdf");
+      },
+      x: 20,
+      y: 20,
+      html2canvas: { scale: 0.5 }
+    });
+  });
+</script>
+
+</body>
+</html>
