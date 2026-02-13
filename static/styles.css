@@ -1,4 +1,7 @@
-/* === Body & Page Background === */
+/* ============================= */
+/* === BODY & PAGE BACKGROUND === */
+/* ============================= */
+
 body {
   font-family: 'Times New Roman', serif;
   font-size: 12px;
@@ -7,18 +10,40 @@ body {
   padding: 0;
 }
 
-/* === Header / Logo === */
+
+/* ============================= */
+/* === HEADER SECTION (PRO) === */
+/* ============================= */
+
 .header {
   text-align: center;
   padding: 20px 10px;
-}
-.logo {
-  width: 180px;       /* slightly bigger */
-  display: block;
-  margin: 0 auto 15px auto; /* center with bottom margin */
+  border-bottom: 2px solid #000;
+  background: white;
 }
 
-/* === Form Container === */
+.logo {
+  width: 180px;
+  display: block;
+  margin: 0 auto 10px auto;
+}
+
+.header h1 {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 5px 0;
+}
+
+.header p {
+  margin: 2px 0;
+  font-size: 13px;
+}
+
+
+/* ============================= */
+/* === FORM CONTAINER === */
+/* ============================= */
+
 form {
   max-width: 700px;
   margin: 20px auto;
@@ -28,50 +53,69 @@ form {
   box-shadow: 0 0 10px rgba(0,0,0,0.2);
 }
 
-/* === Headings === */
+
+/* ============================= */
+/* === HEADINGS === */
+/* ============================= */
+
 h2, h3 {
   text-align: center;
   margin: 15px 0;
 }
 
-/* === Labels & Inputs === */
+
+/* ============================= */
+/* === LABELS & INPUTS === */
+/* ============================= */
+
 label {
   display: block;
   margin-top: 10px;
+  font-weight: bold;
 }
+
 input, select, textarea {
   width: 100%;
   padding: 8px;
   margin-top: 5px;
-  border-radius: 5px;
-  border: 1px solid #ccc;
+  border-radius: 3px;
+  border: 1px solid #000;
   box-sizing: border-box;
+  background: white;
 }
 
-/* === Radio Buttons & Checkboxes === */
-.radio-group {
+
+/* ============================= */
+/* === RADIO / CHECKBOX GROUP === */
+/* ============================= */
+
+.radio-group,
+.checkbox-group {
   display: flex;
   gap: 15px;
   margin-top: 5px;
   flex-wrap: wrap;
 }
-.checkbox-group {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 5px;
-}
 
-/* === Canvas for Signature === */
+
+/* ============================= */
+/* === SIGNATURE CANVAS === */
+/* ============================= */
+
 canvas {
   border: 1px solid black;
   width: 100%;
-  height: 80px;   /* smaller signature area */
+  height: 80px;
   touch-action: none;
   margin-top: 10px;
+  background: white;
 }
 
-/* === Clear Signature Button === */
+
+/* ============================= */
+/* === BUTTONS === */
+/* ============================= */
+
 button.clear-signature {
   background: #ff3333;
   color: #fff;
@@ -79,42 +123,84 @@ button.clear-signature {
   width: auto;
   padding: 5px 10px;
   font-size: 11px;
+  border: none;
+  cursor: pointer;
 }
+
 button.clear-signature:hover {
   background: #cc0000;
 }
 
-/* === Submit Button === */
 button.submit-button {
   margin-top: 15px;
-  padding: 10px;
+  padding: 12px;
   width: 100%;
   background: #0052cc;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  font-weight: bold;
 }
+
 button.submit-button:hover {
   background: #003d99;
 }
 
-/* === Declaration Checkbox === */
+
+/* ============================= */
+/* === DECLARATION === */
+/* ============================= */
+
 .declaration {
   margin-top: 15px;
   font-size: 11px;
 }
 
-/* === Responsive Design === */
+
+/* ============================= */
+/* === RESPONSIVE DESIGN === */
+/* ============================= */
+
 @media(max-width: 768px){
   form {
     width: 90%;
     padding: 20px;
   }
+
   canvas {
     height: 70px;
   }
+
   .logo {
     width: 150px;
   }
+}
+
+
+/* ============================= */
+/* === PRINT / PDF MODE (LEVEL 1000) === */
+/* ============================= */
+
+@media print {
+
+  body {
+    background: white !important;
+  }
+
+  form {
+    box-shadow: none;
+    border-radius: 0;
+    margin: 0;
+    max-width: 100%;
+  }
+
+  button {
+    display: none;   /* Hide buttons in PDF */
+  }
+
+  canvas {
+    border: 1px solid black;
+  }
+
 }

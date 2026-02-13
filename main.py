@@ -27,16 +27,14 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # -------------------------
-# FIND SERVICE ACCOUNT FILE (SMART SEARCH)
+# SERVICE ACCOUNT FILE
 # -------------------------
-
 POSSIBLE_PATHS = [
     "/run/secrets/service_account.json",  # Render secret file
-    "service_account.json"                # Local development fallback
+    "service_account.json"                # Local fallback
 ]
 
 SERVICE_ACCOUNT_PATH = None
-
 for path in POSSIBLE_PATHS:
     if os.path.exists(path):
         SERVICE_ACCOUNT_PATH = path
@@ -44,22 +42,17 @@ for path in POSSIBLE_PATHS:
         break
 
 if SERVICE_ACCOUNT_PATH is None:
-    print("❌ Service account file NOT FOUND")
-    raise Exception("Service account JSON missing. Check Render Secret Files.")
+    raise Exception("❌ Service account JSON missing. Check Render Secret Files.")
 
 # -------------------------
-# Google Sheets
+# Google Sheets Setup
 # -------------------------
-
 scope = [
     "https://spreadsheets.google.com/feeds",
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(
-    SERVICE_ACCOUNT_PATH, scope
-)
-
+creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_PATH, scope)
 client = gspread.authorize(creds)
 sheet = client.open("MCPSB Staff Attendance Register").sheet1
 
@@ -69,6 +62,7 @@ sheet = client.open("MCPSB Staff Attendance Register").sheet1
 
 @app.get("/", response_class=HTMLResponse)
 async def get_form(request: Request):
+    """Serve the attendance form."""
     return templates.TemplateResponse("index.html", {"request": request})
 
 @app.post("/submit-form/")
@@ -89,9 +83,8 @@ async def submit_form(
     signature: str = Form(...),
     declaration: str = Form(...)
 ):
-
+    """Handle form submission and append to Google Sheets."""
     final_title = custom_title if title == "Other" else title
-
     row = [
         final_title,
         first_name,
@@ -107,9 +100,28 @@ async def submit_form(
         time,
         signature
     ]
-
     try:
         sheet.append_row(row)
         return {"status": "success", "message": "Attendance submitted successfully!"}
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
+# -------------------------
+# Admin Dashboard
+# -------------------------
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_dashboard(request: Request):
+    """
+    Display the attendance dashboard.
+    Fetches all rows from Google Sheets and renders a table.
+    """
+    try:
+        rows = sheet.get_all_records()
+    except Exception as e:
+        rows = []
+        print(f"Error fetching sheet data: {e}")
+
+    return templates.TemplateResponse("admin.html", {
+        "request": request,
+        "attendances": rows
+    })
