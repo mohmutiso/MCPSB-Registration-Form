@@ -54,7 +54,7 @@ scope = [
 
 creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_PATH, scope)
 client = gspread.authorize(creds)
-sheet = client.open("MCPSB Staff Attendance Register").sheet1
+sheet = client.open("MCPSB Attendance Register").sheet1
 
 # -------------------------
 # ROUTES
