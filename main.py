@@ -116,12 +116,17 @@ async def admin_dashboard(request: Request):
     Fetches all rows from Google Sheets and renders a table.
     """
     try:
-        rows = sheet.get_all_records()
+        data = sheet.get_all_values()       #read ALL cells safely
+        headers = data[0]
+        rows = data[1:]
+
     except Exception as e:
+        headers = []
         rows = []
         print(f"Error fetching sheet data: {e}")
 
     return templates.TemplateResponse("admin.html", {
         "request": request,
+        "headers": headers,
         "attendances": rows
     })

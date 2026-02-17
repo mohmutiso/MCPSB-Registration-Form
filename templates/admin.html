@@ -47,21 +47,21 @@
   <tbody>
     {% for row in attendances %}
     <tr>
-      <td>{{ row['title'] }}</td>
-      <td>{{ row['first_name'] }}</td>
-      <td>{{ row['surname'] }}</td>
-      <td>{{ row['other_names'] }}</td>
-      <td>{{ row['id_number'] }}</td>
-      <td>{{ row['designation'] }}</td>
-      <td>{{ row['organization'] }}</td>
-      <td>{{ row['gender'] }}</td>
-      <td>{{ row['pwd'] }}</td>
-      <td>{{ row['disability_category'] }}</td>
-      <td>{{ row['date'] }}</td>
-      <td>{{ row['time'] }}</td>
+      <td>{{ row[0] }}</td>
+      <td>{{ row[1] }}</td>
+      <td>{{ row[2] }}</td>
+      <td>{{ row[3] }}</td>
+      <td>{{ row[4] }}</td>
+      <td>{{ row[5] }}</td>
+      <td>{{ row[6] }}</td>
+      <td>{{ row[7] }}</td>
+      <td>{{ row[8] }}</td>
+      <td>{{ row[9] }}</td>
+      <td>{{ row[10] }}</td>
+      <td>{{ row[11] }}</td>
       <td>
-        {% if row['signature'] %}
-          <img src="{{ row['signature'] }}" alt="Signature" class="signature">
+        {% if row[12] %}
+          <img src="{{ row[12] }}" alt="Signature" class="signature">
         {% endif %}
       </td>
     </tr>
