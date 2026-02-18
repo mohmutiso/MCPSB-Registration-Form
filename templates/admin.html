@@ -72,6 +72,8 @@
 <div class="pagination" id="pagination"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script
+src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script>
   const table = document.getElementById("attendanceTable");
   const rows = Array.from(table.querySelectorAll("tbody tr"));
@@ -115,18 +117,21 @@
   displayRows(currentPage);
 
   // PDF Export
-  document.getElementById("exportPdf").addEventListener("click", () => {
+  document.getElementById("exportpdf").addEventListener("click", async () => {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF("l", "pt", "a4");
-    doc.html(document.querySelector("#attendanceTable"), {
-      callback: function (doc) {
-        doc.save("attendance.pdf");
-      },
-      x: 20,
-      y: 20,
-      html2canvas: { scale: 0.5 }
+    const table =
+    document.querySelector("#attendanceTable");
+    const canvas = await html2canvas(table, {scale: 2
     });
+    const imgData = canvas.toDataURL("img/png");
+    const pdf = new jsPDF("1", "mm", "a4");
+    const imgWidth = 280;
+    const pageHeight = 210;
+    const imgHeight = canvas.height * imgWidth / canvas.width;
+    pdf.addImage(imgData, "png", 10, 10, imgWidth, imgHeight);
+    pdf.save("MCPSB_Attendance.pdf");
   });
+  
 </script>
 
 </body>
