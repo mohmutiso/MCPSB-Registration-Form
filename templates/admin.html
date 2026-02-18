@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard - Attendance</title>
+
 <link rel="stylesheet" href="/static/styles.css">
+
 <style>
   body { font-family: 'Times New Roman', serif; margin: 20px; }
   h1 { text-align: center; }
@@ -14,124 +16,175 @@
   th { background: #f2f2f2; }
   .pagination { text-align: center; margin-top: 10px; }
   .pagination button { padding: 5px 10px; margin: 2px; cursor: pointer; }
-  button#exportPdf { background: #0052cc; color: #fff; border: none; padding: 8px 15px; cursor: pointer; border-radius: 5px; }
+  button#exportPdf {
+      background: #0052cc;
+      color: #fff;
+      border: none;
+      padding: 8px 15px;
+      cursor: pointer;
+      border-radius: 5px;
+  }
   button#exportPdf:hover { background: #003d99; }
   img.signature { width: 80px; height: auto; }
 </style>
 </head>
+
 <body>
 
 <h1>MCPSB Attendance Dashboard</h1>
 
 <input type="text" id="searchInput" class="search-box" placeholder="Search by name, ID or org...">
+
 <button id="exportPdf">Export PDF</button>
 
 <table id="attendanceTable">
-  <thead>
-    <tr>
-      <th>Title</th>
-      <th>First Name</th>
-      <th>Surname</th>
-      <th>Other Names</th>
-      <th>ID</th>
-      <th>Designation</th>
-      <th>Organization</th>
-      <th>Gender</th>
-      <th>PWD</th>
-      <th>Disability Category</th>
-      <th>Date</th>
-      <th>Time</th>
-      <th>Signature</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for row in attendances %}
-    <tr>
-      <td>{{ row[0] }}</td>
-      <td>{{ row[1] }}</td>
-      <td>{{ row[2] }}</td>
-      <td>{{ row[3] }}</td>
-      <td>{{ row[4] }}</td>
-      <td>{{ row[5] }}</td>
-      <td>{{ row[6] }}</td>
-      <td>{{ row[7] }}</td>
-      <td>{{ row[8] }}</td>
-      <td>{{ row[9] }}</td>
-      <td>{{ row[10] }}</td>
-      <td>{{ row[11] }}</td>
-      <td>
-        {% if row[12] %}
-          <img src="{{ row[12] }}" alt="Signature" class="signature">
-        {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
+
+<thead>
+<tr>
+<th>Title</th>
+<th>First Name</th>
+<th>Surname</th>
+<th>Other Names</th>
+<th>ID</th>
+<th>Designation</th>
+<th>Organization</th>
+<th>Gender</th>
+<th>PWD</th>
+<th>Disability Category</th>
+<th>Date</th>
+<th>Time</th>
+<th>Signature</th>
+</tr>
+</thead>
+
+<tbody>
+{% for row in attendances %}
+<tr>
+<td>{{ row[0] }}</td>
+<td>{{ row[1] }}</td>
+<td>{{ row[2] }}</td>
+<td>{{ row[3] }}</td>
+<td>{{ row[4] }}</td>
+<td>{{ row[5] }}</td>
+<td>{{ row[6] }}</td>
+<td>{{ row[7] }}</td>
+<td>{{ row[8] }}</td>
+<td>{{ row[9] }}</td>
+<td>{{ row[10] }}</td>
+<td>{{ row[11] }}</td>
+<td>
+{% if row[12] %}
+<img src="{{ row[12] }}" alt="Signature" class="signature">
+{% endif %}
+</td>
+</tr>
+{% endfor %}
+</tbody>
+
 </table>
 
 <div class="pagination" id="pagination"></div>
 
+
+<!-- JS Libraries -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script
-src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+
 <script>
-  const table = document.getElementById("attendanceTable");
-  const rows = Array.from(table.querySelectorAll("tbody tr"));
-  const searchInput = document.getElementById("searchInput");
-  const paginationContainer = document.getElementById("pagination");
-  const rowsPerPage = 10;
-  let currentPage = 1;
 
-  function displayRows(page) {
-    const start = (page - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-    rows.forEach((row, i) => row.style.display = (i >= start && i < end) ? "" : "none");
+const table = document.getElementById("attendanceTable");
+const rows = Array.from(table.querySelectorAll("tbody tr"));
 
-    renderPagination();
-  }
+const searchInput = document.getElementById("searchInput");
+const paginationContainer = document.getElementById("pagination");
 
-  function renderPagination() {
-    const totalPages = Math.ceil(rows.length / rowsPerPage);
-    paginationContainer.innerHTML = "";
-    for (let i = 1; i <= totalPages; i++) {
-      const btn = document.createElement("button");
-      btn.textContent = i;
-      if (i === currentPage) btn.style.fontWeight = "bold";
-      btn.onclick = () => { currentPage = i; displayRows(currentPage); };
-      paginationContainer.appendChild(btn);
-    }
-  }
+const rowsPerPage = 10;
+let currentPage = 1;
 
-  function searchTable() {
-    const filter = searchInput.value.toLowerCase();
-    rows.forEach(row => {
-      const text = row.textContent.toLowerCase();
-      row.style.display = text.includes(filter) ? "" : "none";
-    });
-    currentPage = 1;
-    renderPagination();
-  }
 
-  searchInput.addEventListener("keyup", searchTable);
+// Pagination
+function displayRows(page) {
 
-  displayRows(currentPage);
+  const start = (page - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
 
-  // PDF Export
-  document.getElementById("exportpdf").addEventListener("click", async () => {
-    const { jsPDF } = window.jspdf;
-    const table =
-    document.querySelector("#attendanceTable");
-    const canvas = await html2canvas(table, {scale: 2
-    });
-    const imgData = canvas.toDataURL("img/png");
-    const pdf = new jsPDF("1", "mm", "a4");
-    const imgWidth = 280;
-    const pageHeight = 210;
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-    pdf.addImage(imgData, "png", 10, 10, imgWidth, imgHeight);
-    pdf.save("MCPSB_Attendance.pdf");
+  rows.forEach((row, i) => {
+    row.style.display = (i >= start && i < end) ? "" : "none";
   });
-  
+
+  renderPagination();
+}
+
+function renderPagination() {
+
+  const totalPages = Math.ceil(rows.length / rowsPerPage);
+
+  paginationContainer.innerHTML = "";
+
+  for (let i = 1; i <= totalPages; i++) {
+
+    const btn = document.createElement("button");
+
+    btn.textContent = i;
+
+    if (i === currentPage) btn.style.fontWeight = "bold";
+
+    btn.onclick = () => {
+      currentPage = i;
+      displayRows(currentPage);
+    };
+
+    paginationContainer.appendChild(btn);
+  }
+}
+
+
+// Search
+function searchTable() {
+
+  const filter = searchInput.value.toLowerCase();
+
+  rows.forEach(row => {
+
+    const text = row.textContent.toLowerCase();
+
+    row.style.display = text.includes(filter) ? "" : "none";
+  });
+
+  currentPage = 1;
+
+  renderPagination();
+}
+
+searchInput.addEventListener("keyup", searchTable);
+
+displayRows(currentPage);
+
+
+// ✅ WORKING PDF EXPORT
+document.getElementById("exportPdf").addEventListener("click", async () => {
+
+  const { jsPDF } = window.jspdf;
+
+  const canvas = await html2canvas(document.querySelector("#attendanceTable"), {
+      scale: 2
+  });
+
+  const imgData = canvas.toDataURL("image/png");
+
+  const pdf = new jsPDF("l", "mm", "a4");
+
+  const imgWidth = 280;
+  const imgHeight = canvas.height * imgWidth / canvas.width;
+
+  pdf.addImage(imgData, "PNG", 10, 10, imgWidth, imgHeight);
+
+  pdf.save("MCPSB_Attendance.pdf");
+
+});
+
 </script>
 
 </body>
