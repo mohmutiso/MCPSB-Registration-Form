@@ -213,28 +213,131 @@ timeInput.value=now.toLocaleTimeString();
 
 /* SIGNATURE */
 
-const canvas=document.getElementById("signatureCanvas");
-const ctx=canvas.getContext("2d");
-let drawing=false;
+/* ===============================
+   ULTRA SMOOTH PROFESSIONAL SIGNATURE
+================================ */
 
-canvas.addEventListener("mousedown",()=>drawing=true);
-canvas.addEventListener("mouseup",()=>drawing=false);
-canvas.addEventListener("mousemove",draw);
+const canvas = document.getElementById("signatureCanvas");
+const ctx = canvas.getContext("2d");
 
-function draw(e){
-if(!drawing)return;
-const rect=canvas.getBoundingClientRect();
-ctx.lineWidth=2;
-ctx.lineCap="round";
-ctx.lineTo(e.clientX-rect.left,e.clientY-rect.top);
-ctx.stroke();
-ctx.beginPath();
-ctx.moveTo(e.clientX-rect.left,e.clientY-rect.top);
+let drawing = false;
+let points = [];
+
+/* ---- HIGH RESOLUTION CANVAS ---- */
+
+function resizeCanvas() {
+
+    const ratio = window.devicePixelRatio || 1;
+
+    canvas.width = canvas.offsetWidth * ratio;
+    canvas.height = canvas.offsetHeight * ratio;
+
+    ctx.scale(ratio, ratio);
+
+    ctx.lineWidth = 2;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = "#000";
 }
+
+resizeCanvas();
+window.addEventListener("resize", resizeCanvas);
+
+/* ---- GET POSITION (MOUSE + TOUCH) ---- */
+
+function getPos(e) {
+
+    const rect = canvas.getBoundingClientRect();
+
+    if (e.touches) {
+        return {
+            x: e.touches[0].clientX - rect.left,
+            y: e.touches[0].clientY - rect.top
+        };
+    }
+
+    return {
+        x: e.clientX - rect.left,
+        y: e.clientY - rect.top
+    };
+}
+
+/* ---- START DRAW ---- */
+
+function startDraw(e) {
+
+    drawing = true;
+    points = [];
+
+    const pos = getPos(e);
+    points.push(pos);
+
+    ctx.beginPath();
+    ctx.moveTo(pos.x, pos.y);
+}
+
+/* ---- SMOOTH CURVE DRAW ---- */
+
+function draw(e) {
+
+    if (!drawing) return;
+
+    e.preventDefault(); // critical for mobile
+
+    const pos = getPos(e);
+    points.push(pos);
+
+    if (points.length < 3) return;
+
+    const p1 = points[points.length - 3];
+    const p2 = points[points.length - 2];
+    const p3 = points[points.length - 1];
+
+    const midPointX = (p2.x + p3.x) / 2;
+    const midPointY = (p2.y + p3.y) / 2;
+
+    ctx.quadraticCurveTo(p2.x, p2.y, midPointX, midPointY);
+    ctx.stroke();
+}
+
+/* ---- STOP DRAW ---- */
+
+function stopDraw() {
+
+    drawing = false;
+    points = [];
+}
+
+/* ---- EVENTS ---- */
+
+// Mouse
+canvas.addEventListener("mousedown", startDraw);
+canvas.addEventListener("mousemove", draw);
+canvas.addEventListener("mouseup", stopDraw);
+canvas.addEventListener("mouseleave", stopDraw);
+
+// Touch
+canvas.addEventListener("touchstart", startDraw);
+canvas.addEventListener("touchmove", draw);
+canvas.addEventListener("touchend", stopDraw);
+
+/* ---- CLEAR SIGNATURE ---- */
 
 function clearSignature(){
-ctx.clearRect(0,0,canvas.width,canvas.height);
+
+    ctx.clearRect(0,0,canvas.width,canvas.height);
 }
+
+/* ---- SAVE SIGNATURE BEFORE SUBMIT ---- */
+
+document.getElementById("attendanceForm")
+.addEventListener("submit", function(){
+
+    document.getElementById("signatureInput").value =
+        canvas.toDataURL("image/png");
+});
+
+
 
 /* SUBMIT */
 
