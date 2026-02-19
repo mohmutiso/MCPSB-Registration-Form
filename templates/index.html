@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
@@ -8,27 +9,98 @@
 
 <link rel="stylesheet" href="/static/styles.css">
 
+<style>
+
+/* SUCCESS OVERLAY */
+
+.success-overlay{
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background:rgba(0,0,0,0.6);
+    display:none;
+    justify-content:center;
+    align-items:center;
+    z-index:9999;
+}
+
+.success-box{
+    background:white;
+    padding:40px;
+    border-radius:12px;
+    text-align:center;
+    max-width:420px;
+    animation:scaleIn .3s ease;
+}
+
+.checkmark{
+    font-size:60px;
+    color:#2ecc71;
+}
+
+.success-box button{
+    margin-top:20px;
+    padding:10px 20px;
+    border:none;
+    background:#0052cc;
+    color:white;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+@keyframes scaleIn{
+from{transform:scale(.8);opacity:0;}
+to{transform:scale(1);opacity:1;}
+}
+
+</style>
+
 </head>
 
 <body>
 
-<!-- ===== HEADER ===== -->
-<div class="header">
+<!-- SUCCESS CARD -->
 
-    <img src="/static/county_logo.png" class="logo">
+<div id="successCard" class="success-overlay">
 
-    <h1>MAKUENI COUNTY PUBLIC SERVICE BOARD</h1>
+<div class="success-box">
 
-    <p>
-        P.O BOX 49 – 90300 MAKUENI Tel:0202026751<br>
-        EMAIL: cpsb@makueni.go.ke<br>
-        Web: www.makuenipsb.go.ke
-    </p>
+<div class="checkmark">✓</div>
+
+<h2>Attendance Registered Successfully</h2>
+
+<p>
+Thank you, you have successfully registered attendance for
+<strong>MCPSB Meeting</strong>.
+</p>
+
+<button onclick="location.reload()">Register Another Person</button>
 
 </div>
 
-<!-- ===== FORM ===== -->
-<form id="attendanceForm" action="/submit-form/" method="POST">
+</div>
+
+<!-- HEADER -->
+
+<div class="header">
+
+<img src="/static/county_logo.png" class="logo">
+
+<h1>MAKUENI COUNTY PUBLIC SERVICE BOARD</h1>
+
+<p>
+P.O BOX 49 – 90300 MAKUENI Tel:0202026751<br>
+EMAIL: cpsb@makueni.go.ke<br>
+Web: www.makuenipsb.go.ke
+</p>
+
+</div>
+
+<!-- FORM -->
+
+<form id="attendanceForm">
 
 <h2>MCPSB Attendance Register</h2>
 
@@ -48,8 +120,7 @@
 <option value="Other">Other (Specify)</option>
 </select>
 
-<input type="text" id="customTitle" name="custom_title"
-placeholder="Enter custom title" style="display:none;">
+<input type="text" id="customTitle" name="custom_title" placeholder="Enter custom title" style="display:none;">
 
 <label>First Name</label>
 <input type="text" name="first_name" required>
@@ -78,7 +149,7 @@ placeholder="Enter custom title" style="display:none;">
 <input type="radio" name="gender" value="Prefer not to say"> Prefer not to say
 </div>
 
-<label>Person With Disability (PWD)</label>
+<label>PWD</label>
 <div class="radio-group">
 <input type="radio" name="pwd" value="Yes" onclick="togglePWD(true)"> Yes
 <input type="radio" name="pwd" value="No" onclick="togglePWD(false)"> No
@@ -91,15 +162,11 @@ placeholder="Enter custom title" style="display:none;">
 <input type="checkbox" name="disability_category" value="Intellectual"> Intellectual
 </div>
 
-<h3>SECTION C: SIGNATURE & DATE/TIME</h3>
-
-<label>Electronic Signature</label>
+<h3>SECTION C</h3>
 
 <canvas id="signatureCanvas"></canvas>
 
-<button type="button" class="clear-signature" onclick="clearSignature()">
-Clear Signature
-</button>
+<button type="button" onclick="clearSignature()">Clear Signature</button>
 
 <input type="hidden" name="signature" id="signatureInput">
 
@@ -109,72 +176,98 @@ Clear Signature
 <label>Time</label>
 <input type="text" name="time" id="timeInput" readonly>
 
-<div class="declaration">
 <label>
 <input type="checkbox" name="declaration" required>
-I hereby declare that the information provided is true and accurate.
+I hereby declare that the information provided is true.
 </label>
-</div>
 
-<button type="submit" class="submit-button">Submit</button>
+<button type="submit">Submit</button>
 
 </form>
 
-<!-- ===== JAVASCRIPT ===== -->
 <script>
 
-function toggleCustomTitle() {
-  const select = document.getElementById("titleSelect");
-  const custom = document.getElementById("customTitle");
+/* UI */
 
-  if(select.value === "Other"){
-      custom.style.display="block";
-      custom.required=true;
-  }else{
-      custom.style.display="none";
-      custom.required=false;
-  }
+function toggleCustomTitle(){
+const select=document.getElementById("titleSelect");
+const custom=document.getElementById("customTitle");
+
+if(select.value==="Other"){
+custom.style.display="block";
+custom.required=true;
+}else{
+custom.style.display="none";
+custom.required=false;
+}
 }
 
 function togglePWD(show){
-   document.getElementById("pwdDetails").style.display = show ? "flex":"none";
+document.getElementById("pwdDetails").style.display=show?"flex":"none";
 }
 
-const now = new Date();
-document.getElementById("dateInput").value = now.toLocaleDateString();
-document.getElementById("timeInput").value = now.toLocaleTimeString();
+const now=new Date();
+dateInput.value=now.toLocaleDateString();
+timeInput.value=now.toLocaleTimeString();
 
-const canvas = document.getElementById("signatureCanvas");
-const ctx = canvas.getContext("2d");
+/* SIGNATURE */
+
+const canvas=document.getElementById("signatureCanvas");
+const ctx=canvas.getContext("2d");
 let drawing=false;
 
 canvas.addEventListener("mousedown",()=>drawing=true);
 canvas.addEventListener("mouseup",()=>drawing=false);
-canvas.addEventListener("mouseout",()=>drawing=false);
 canvas.addEventListener("mousemove",draw);
 
-canvas.addEventListener("touchstart",(e)=>{drawing=true;draw(e.touches[0]);e.preventDefault();});
-canvas.addEventListener("touchmove",(e)=>{draw(e.touches[0]);e.preventDefault();});
-canvas.addEventListener("touchend",()=>drawing=false);
-
 function draw(e){
- if(!drawing)return;
- const rect=canvas.getBoundingClientRect();
- ctx.lineWidth=2;
- ctx.lineCap="round";
- ctx.strokeStyle="#000";
- ctx.lineTo(e.clientX-rect.left,e.clientY-rect.top);
- ctx.stroke();
- ctx.beginPath();
- ctx.moveTo(e.clientX-rect.left,e.clientY-rect.top);
+if(!drawing)return;
+const rect=canvas.getBoundingClientRect();
+ctx.lineWidth=2;
+ctx.lineCap="round";
+ctx.lineTo(e.clientX-rect.left,e.clientY-rect.top);
+ctx.stroke();
+ctx.beginPath();
+ctx.moveTo(e.clientX-rect.left,e.clientY-rect.top);
 }
 
 function clearSignature(){
- ctx.clearRect(0,0,canvas.width,canvas.height);
+ctx.clearRect(0,0,canvas.width,canvas.height);
 }
 
-document.getElementById("attendanceForm").addEventListener("submit",function(){
- document.getElementById("signatureInput").value = canvas.toDataURL();
+/* SUBMIT */
+
+document.getElementById("attendanceForm").addEventListener("submit", async function(e){
+
+e.preventDefault();
+
+signatureInput.value=canvas.toDataURL();
+
+const formData=new FormData(this);
+
+const response=await fetch("/submit-form/",{
+method:"POST",
+body:formData
+});
+
+const result=await response.json();
+
+if(result.status==="success"){
+
+document.getElementById("successCard").style.display="flex";
+
+}
+
+else if(result.status==="duplicate"){
+
+alert("This ID already registered.");
+
+}else{
+
+alert("Error submitting form.");
+
+}
+
 });
 
 </script>

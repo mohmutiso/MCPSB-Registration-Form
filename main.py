@@ -52,7 +52,9 @@ scope = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(SERVICE_ACCOUNT_PATH, scope)
+creds = ServiceAccountCredentials.from_json_keyfile_name(
+    SERVICE_ACCOUNT_PATH, scope
+)
 client = gspread.authorize(creds)
 sheet = client.open("MCPSB Attendance Register").sheet1
 
@@ -64,6 +66,7 @@ sheet = client.open("MCPSB Attendance Register").sheet1
 async def get_form(request: Request):
     """Serve the attendance form."""
     return templates.TemplateResponse("index.html", {"request": request})
+
 
 @app.post("/submit-form/")
 async def submit_form(
@@ -83,42 +86,72 @@ async def submit_form(
     signature: str = Form(...),
     declaration: str = Form(...)
 ):
-    """Handle form submission and append to Google Sheets."""
+    """Handle form submission with duplicate prevention."""
+
     final_title = custom_title if title == "Other" else title
-    row = [
-        final_title,
-        first_name,
-        surname,
-        other_names,
-        id_number,
-        designation,
-        organization,
-        gender,
-        pwd,
-        disability_category,
-        date,
-        time,
-        signature
-    ]
+
     try:
-        sheet.append_row(row)
-        return {"status": "success", "message": "Attendance submitted successfully!"}
+        # ✅ GET EXISTING DATA
+        existing_rows = sheet.get_all_values()
+
+        # Skip header row and collect existing IDs
+        existing_ids = [
+            row[4] for row in existing_rows[1:]
+            if len(row) > 4
+        ]
+
+        # ✅ DUPLICATE CHECK
+        if id_number in existing_ids:
+            return {
+                "status": "duplicate",
+                "message": "Attendance already registered with this ID/Payroll number."
+            }
+
+        # ✅ CREATE NEW ROW
+        new_row = [
+            final_title,
+            first_name,
+            surname,
+            other_names,
+            id_number,
+            designation,
+            organization,
+            gender,
+            pwd,
+            disability_category,
+            date,
+            time,
+            signature
+        ]
+
+        # ✅ SAVE TO GOOGLE SHEET
+        sheet.append_row(new_row)
+
+        return {
+            "status": "success",
+            "message": "Thank you, you have successfully registered attendance for MCPSB Meeting."
+        }
+
     except Exception as e:
         return {"status": "error", "message": str(e)}
+
 
 # -------------------------
 # Admin Dashboard
 # -------------------------
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_dashboard(request: Request):
-    """
-    Display the attendance dashboard.
-    Fetches all rows from Google Sheets and renders a table.
-    """
+    """Display attendance dashboard."""
+
     try:
-        data = sheet.get_all_values()       #read ALL cells safely
-        headers = data[0]
-        rows = data[1:]
+        data = sheet.get_all_values()
+
+        if len(data) > 0:
+            headers = data[0]
+            rows = data[1:]
+        else:
+            headers = []
+            rows = []
 
     except Exception as e:
         headers = []
