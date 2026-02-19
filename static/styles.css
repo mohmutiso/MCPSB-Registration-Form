@@ -87,8 +87,6 @@ input, select, textarea {
   transition: all 0.2s ease;
 }
 
-/* NICE FOCUS EFFECT */
-
 input:focus,
 select:focus {
   outline: none;
@@ -98,29 +96,45 @@ select:focus {
 
 
 /* ============================= */
-/* === RADIO / CHECKBOX GROUP === */
+/* === RADIO / CHECKBOX ALIGNMENT FIX === */
 /* ============================= */
 
 .radio-group,
 .checkbox-group {
   display: flex;
-  gap: 15px;
-  margin-top: 5px;
+  align-items: center;   /* 🔥 Align text and radio same level */
+  gap: 20px;
+  margin-top: 8px;
   flex-wrap: wrap;
+}
+
+.radio-group label,
+.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: normal;
+}
+
+.radio-group input,
+.checkbox-group input {
+  width: auto;
+  margin: 0;
 }
 
 
 /* ============================= */
-/* === SIGNATURE CANVAS === */
+/* === SIGNATURE CANVAS (MOBILE PRO) === */
 /* ============================= */
 
 canvas {
   border: 2px dashed #333;
   width: 100%;
-  height: 90px;
+  height: 120px;        /* 🔥 bigger for finger signing */
   touch-action: none;
   margin-top: 10px;
   background: white;
+  display: block;
 }
 
 
@@ -135,10 +149,9 @@ button {
 button.clear-signature {
   background: #ff3333;
   color: #fff;
-  margin-top: 5px;
-  width: auto;
-  padding: 6px 12px;
-  font-size: 11px;
+  margin-top: 8px;
+  padding: 6px 14px;
+  font-size: 12px;
   border: none;
   cursor: pointer;
   border-radius: 4px;
@@ -146,11 +159,10 @@ button.clear-signature {
 
 button.clear-signature:hover {
   background: #cc0000;
-  transform: translateY(-1px);
 }
 
 button.submit-button {
-  margin-top: 18px;
+  margin-top: 20px;
   padding: 14px;
   width: 100%;
   background: #0052cc;
@@ -159,12 +171,11 @@ button.submit-button {
   border-radius: 6px;
   cursor: pointer;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 15px;
 }
 
 button.submit-button:hover {
   background: #003d99;
-  transform: translateY(-2px);
 }
 
 
@@ -225,9 +236,6 @@ button.submit-button:hover {
   background: #003d99;
 }
 
-
-/* ANIMATION */
-
 @keyframes scaleIn {
   from { transform: scale(.8); opacity: 0; }
   to { transform: scale(1); opacity: 1; }
@@ -246,18 +254,17 @@ button.submit-button:hover {
   }
 
   canvas {
-    height: 75px;
+    height: 140px;   /* 🔥 even bigger on mobile */
   }
 
   .logo {
     width: 150px;
   }
-
 }
 
 
 /* ============================= */
-/* === PRINT / PDF MODE (LEVEL 1000) === */
+/* === PRINT / PDF MODE === */
 /* ============================= */
 
 @media print {
@@ -283,3 +290,4 @@ button.submit-button:hover {
   }
 
 }
+

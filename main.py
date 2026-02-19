@@ -129,7 +129,7 @@ async def submit_form(
 
         return {
             "status": "success",
-            "message": "Thank you, you have successfully registered attendance for MCPSB Meeting."
+            "message": "Thank you, you have successfully registered attendance for MCPSB Induction Meeting held at Mombasa Beach Hotel."
         }
 
     except Exception as e:
