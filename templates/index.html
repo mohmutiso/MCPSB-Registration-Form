@@ -134,6 +134,19 @@ Web: www.makuenipsb.go.ke
 <label>ID / Payroll Number</label>
 <input type="text" name="id_number" required>
 
+<label>Phone Number</label>
+<input type="tel" 
+       name="phone_number" 
+       pattern="^\+?[0-9]{10,15}$" 
+       placeholder="e.g. 0712345678 or +254712345678"
+       required>
+
+<label>Email Address</label>
+<input type="email" 
+       name="email_address" 
+       placeholder="e.g. example@email.com"
+       required>
+
 <label>Designation</label>
 <input type="text" name="designation" required>
 
