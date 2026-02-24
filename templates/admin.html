@@ -46,6 +46,8 @@
 <th>Surname</th>
 <th>Other Names</th>
 <th>ID</th>
+<th>Phone Number</th>
+<th>Email Address</th>
 <th>Designation</th>
 <th>Organization</th>
 <th>Gender</th>
@@ -72,9 +74,11 @@
 <td>{{ row[9] }}</td>
 <td>{{ row[10] }}</td>
 <td>{{ row[11] }}</td>
+<td>{{ row[12] }}</td>
+<td>{{ row[13] }}</td>
 <td>
-{% if row[12] %}
-<img src="{{ row[12] }}" alt="Signature" class="signature">
+{% if row[14] %}
+<img src="{{ row[14] }}" alt="Signature" class="signature">
 {% endif %}
 </td>
 </tr>
